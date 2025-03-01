@@ -1,0 +1,36 @@
+{
+    "asset": {
+        "version": "2.0",
+        "generator": "Blender 2.93 GLTF Exporter"
+    },
+    "scenes": [
+        {
+            "nodes": [0],
+            "name": "Scene"
+        }
+    ],
+    "nodes": [
+        {
+            "mesh": 0,
+            "name": "House",
+            "translation": [0, 0, 0],
+            "rotation": [0, 0, 0, 1],
+            "scale": [1, 1, 1]
+        }
+    ],
+    "meshes": [
+        {
+            "primitives": [
+                {
+                    "attributes": {
+                        "POSITION": 0,
+                        "NORMAL": 1,
+                        "TEXCOORD_0": 2
+                    },
+                    "indices": 3,
+                    "material": 0
+                }
+            ]
+        }
+    ]
+}
