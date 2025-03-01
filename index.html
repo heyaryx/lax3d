@@ -1,0 +1,213 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAX3D - Web 3D Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r132/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/exporters/GLTFExporter.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/recordrtc/RecordRTC.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/libs/inflate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/libs/fflate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/loaders/FBXLoader.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/loaders/OBJLoader.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/loaders/STLLoader.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/stats.js@0.17.0/build/stats.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/controls/TransformControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.0/examples/js/controls/DragControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/webm-writer@0.3.0/WebMWriter.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@0.4.0/dist/mp4-muxer.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>LAX3D</h1>
+            <div class="controls">
+                <h3>Import</h3>
+                <input type="file" id="file-input" accept=".gltf,.glb,.fbx,.obj,.stl">
+                <label><input type="checkbox" id="replace-mode" checked> Replace current model</label>
+                <div class="sample-models">
+                    <h3>Sample Models</h3>
+                    <select id="sample-models">
+                        <option value="">Select a sample model...</option>
+                        
+                    </select>
+                </div>
+
+                <h3>Scene Objects</h3>
+                <select id="loaded-models" size="3" style="width: 100%; margin-bottom: 5px;"></select>
+                <div class="button-group">
+                    <button id="select-model">Select</button>
+                    <button id="deselect-model">Deselect</button>
+                    <button id="delete-model">Delete</button>
+                </div>
+
+                <h3>Animation</h3>
+                <div class="button-group">
+                    <button id="play-animation">Play</button>
+                    <button id="pause-animation">Pause</button>
+                    <button id="slow-animation">Slow</button>
+                    <button id="fast-animation">Fast</button>
+                </div>
+                <h3>Recording</h3>
+                <div class="recording-options">
+                    <label>Camera Source:
+                        <select id="camera-select"></select>
+                    </label>
+                    <label>Quality:
+                        <select id="video-quality">
+                            <option value="2000000">2 Mbps</option>
+                            <option value="5000000">5 Mbps</option>
+                            <option value="8000000" selected>8 Mbps</option>
+                            <option value="12000000">12 Mbps</option>
+                        </select>
+                    </label>
+                    <label>Frame Rate:
+                        <select id="frame-rate">
+                            <option value="24">24 fps</option>
+                            <option value="30">30 fps</option>
+                            <option value="60" selected>60 fps</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="button-group">
+                    <button id="start-recording" title="Records in high quality (8Mbps)">Start Recording</button>
+                    <button id="stop-recording">Stop Recording</button>
+                </div>
+                <h3>Export</h3>
+                <div class="button-group">
+                    <button id="export-gltf">Export GLTF</button>
+                    <button id="export-glb">Export GLB</button>
+                    <button id="export-obj">Export OBJ</button>
+                </div>
+                <h3>View Options</h3>
+                <div class="view-options">
+                    <label><input type="checkbox" id="toggle-wireframe"> Wireframe</label>
+                    <label><input type="checkbox" id="toggle-edges"> Edges</label>
+                    <label><input type="checkbox" id="toggle-grid" checked> Grid</label>
+                    <label><input type="checkbox" id="toggle-axes"> Axes</label>
+                    <label><input type="checkbox" id="toggle-stats"> Performance Stats</label>
+                </div>
+                <div class="button-group">
+                    <button id="take-screenshot" title="Take a screenshot">Screenshot</button>
+                    <button id="reset-model" title="Reset model position">Reset Model</button>
+                </div>
+                <h3>Camera Control</h3>
+                <div class="button-group">
+                    <button id="add-keyframe">Add Camera Keyframe</button>
+                    <button id="play-camera-path">Play Camera Path</button>
+                    <button id="stop-camera-path">Stop Camera Path</button>
+                </div>
+                <div class="camera-controls">
+                    <div class="camera-slider">
+                        <label>Field of View: <span id="fov-value">75°</span></label>
+                        <div class="slider-container">
+                            <input type="range" id="camera-fov" min="10" max="120" value="75">
+                        </div>
+                    </div>
+                    <label><input type="checkbox" id="toggle-camera-grid" checked> Show Camera Boundaries</label>
+                </div>
+                <div class="camera-preview-container">
+                    <canvas id="camera-preview"></canvas>
+                    <select id="aspect-ratio">
+                        <option value="16:9">16:9</option>
+                        <option value="4:3">4:3</option>
+                        <option value="1:1">1:1</option>
+                        <option value="9:16">9:16</option>
+                        <option value="2.35:1">2.35:1 (Cinematic)</option>
+                    </select>
+                    <div id="aspect-ratio-info" class="aspect-ratio-info">16:9</div>
+                    <div class="preview-controls">
+                        <button id="center-preview">Center View</button>
+                        <button id="toggle-preview-grid">Toggle Grid</button>
+                    </div>
+                </div>
+                <h3>Model Animation</h3>
+                <div class="button-group">
+                    <button id="add-model-keyframe">Add Model Keyframe</button>
+                    <button id="play-model-animation">Play Model Animation</button>
+                    <button id="stop-model-animation">Stop Model Animation</button>
+                    <button id="render-animation">Render Animation</button>
+                </div>
+                <div class="model-keyframes-container"></div>
+                <h3>Transform Controls</h3>
+                <div class="button-group">
+                    <button id="translate-mode">Move</button>
+                    <button id="rotate-mode">Rotate</button>
+                    <button id="scale-mode">Scale</button>
+                </div>
+                <div class="environments">
+                    <h3>Environment</h3>
+                    <select id="environment">
+                        <option value="studio">Studio</option>
+                        <option value="outdoor">Outdoor</option>
+                        <option value="night">Night</option>
+                    </select>
+                </div>
+            </div>
+            <div class="model-info">
+                <h3>Model Info</h3>
+                <div id="info-panel"></div>
+            </div>
+        </div>
+        <div id="viewer"></div>
+    </div>
+    <div id="render-dialog" class="dialog">
+        <div class="dialog-content">
+            <h3>Render Animation</h3>
+            <div class="render-options">
+                <label>Format:
+                    <select id="render-format">
+                        <option value="gif">Animated GIF</option>
+                        <option value="webm">WebM Video</option>
+                        <option value="mp4">MP4 Video</option>
+                        <option value="frames">Image Sequence</option>
+                    </select>
+                </label>
+                <label>Quality:
+                    <select id="render-quality">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high" selected>High</option>
+                    </select>
+                </label>
+                <label>FPS:
+                    <select id="render-fps">
+                        <option value="24">24</option>
+                        <option value="30" selected>30</option>
+                        <option value="60">60</option>
+                    </select>
+                </label>
+                <label>Duration (seconds):
+                    <input type="number" id="render-duration" value="5" min="1" max="60" step="0.1">
+                </label>
+                <label>Resolution:
+                    <select id="render-resolution">
+                        <option value="640x360">640x360</option>
+                        <option value="1280x720">1280x720</option>
+                        <option value="1920x1080" selected>1920x1080</option>
+                        <option value="3840x2160">3840x2160</option>
+                    </select>
+                </label>
+            </div>
+            <div class="dialog-buttons">
+                <button id="start-rendering">Start Rendering</button>
+                <button id="cancel-rendering">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
